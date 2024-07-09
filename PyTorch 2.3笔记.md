@@ -87,4 +87,19 @@
 <br>
 
 - ### nn.CrossEntropy自带softmax，网络输出不要再额外添加了
+<br>
 
+- ### 加载部分权重：以ViT为例，假设num_classes不是1000，相应地要去掉最后Head的权重：
+  ```python
+  # 创建模型
+  model = create_vit_model()
+
+  # 加载部分权重
+  checkpoint = torch.load(r'vit_base_patch16_224.pth')
+  checkpoint.pop('head.weight', None)  # 具体网络层的名字可以点进调试里面看，隐藏了就展开
+  checkpoint.pop('head.bias', None)
+
+  model_state_dict = model.state_dict()  # 读取模型状态到字典
+  model_state_dict.update(checkpoint)  # 更新字典
+  model.load_state_dict(model_state_dict)  # 根据字典加载权重
+  ```
