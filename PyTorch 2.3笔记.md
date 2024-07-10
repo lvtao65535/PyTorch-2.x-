@@ -103,3 +103,26 @@
   model_state_dict.update(checkpoint)  # 更新字典
   model.load_state_dict(model_state_dict)  # 根据字典加载权重
   ```
+- ### 用x = torch.flatten(x, start_dim=1)保留batch_size进行展平，进行后续的fc等操作
+- ### 卷积输出计算：
+  $$
+  H, W_{out} = \frac{H, W_{in} + 2 \times padding - dilation \times (kernel - 1) - 1}{stride} + 1
+  $$
+  ### 不考虑空洞卷积则简化为：
+  $$
+  H, W_{out} = \frac{H, W_{in} + 2 \times padding - kernel}{stride} + 1
+  $$
+  ### 默认：padding=0, dilation=1, stride=1
+  ### 常见情况：
+  - ### 3x3卷积不填充，尺寸减小2；
+  - ### 3x3卷积填充，尺寸不变；
+  
+<br>
+
+- ### model.train(), model.eval(), torch.no_grad()：
+  - ### 训练模式：启用Dropout；BN会使用当前批次的running_mean和running_std处理当前样本，同时会不断更新已有样本的mean和std。
+  - ### 验证模式：禁用Dropout；BN使用已计算的mean和std处理当前样本。
+  - ### no_grad模式：停止Autograd，减小开销和加快推理速度。
+    ### 关于第3点多解释一下：① 首先Autograd≠backward，Autograd大概是指的整个前向和反向传播的机制； ② no_grad模式下pytorch仍然会构建计算图，但会减少占用。具体而言，虽然前向传播本身就不计算梯度，但pytorch仍会分配为其内存，启用no_grad后则不再分配；此外还可以减少计算图结点所需缓冲区等等（“具体而言”的内容不是很确定，来自网络和GPT。但结论肯定是会减少开销没错，因此在推理中要开启no_grad）。
+
+    
